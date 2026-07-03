@@ -106,8 +106,8 @@ function TechTreeContent({ isDevsMode }: { isDevsMode: boolean }) {
   const [helperLines, setHelperLines] = useState<{horizontal?: number, vertical?: number} | null>(null);
 
   const getUid = useCallback(() => {
-    return isDevsMode ? 'devs_shared' : auth.currentUser?.uid;
-  }, [isDevsMode]);
+    return 'global_shared';
+  }, []);
 
   // Load from Firebase
   useEffect(() => {

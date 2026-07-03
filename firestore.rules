@@ -20,17 +20,13 @@ service cloud.firestore {
     }
 
     match /trees/{userId} {
-      allow read: if isSignedIn() && request.auth.uid == userId;
-      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidTreeData(incoming());
-      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId 
+      allow read: if userId == 'global_shared' || userId == 'devs_shared' || (isSignedIn() && request.auth.uid == userId);
+      allow create: if userId == 'global_shared' || userId == 'devs_shared' || (isSignedIn() && isValidId(userId) && request.auth.uid == userId && isValidTreeData(incoming()));
+      allow update: if userId == 'global_shared' || userId == 'devs_shared' || (isSignedIn() && isValidId(userId) && request.auth.uid == userId 
         && isValidTreeData(incoming()) 
         && incoming().ownerId == existing().ownerId
-        && incoming().diff(existing()).affectedKeys().hasOnly(['nodes', 'edges']);
-      allow delete: if isSignedIn() && request.auth.uid == userId;
-    }
-
-    match /trees/devs_shared {
-      allow read, write: if true;
+        && incoming().diff(existing()).affectedKeys().hasOnly(['nodes', 'edges']));
+      allow delete: if userId == 'global_shared' || userId == 'devs_shared' || (isSignedIn() && request.auth.uid == userId);
     }
   }
 }
