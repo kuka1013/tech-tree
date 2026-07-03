@@ -1,0 +1,29 @@
+{
+  "entities": {
+    "TreeData": {
+      "title": "Tree Data",
+      "description": "Stores the user's graph data including nodes and edges.",
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "string",
+          "description": "JSON stringified nodes array"
+        },
+        "edges": {
+          "type": "string",
+          "description": "JSON stringified edges array"
+        },
+        "ownerId": {
+          "type": "string"
+        }
+      },
+      "required": ["nodes", "edges", "ownerId"]
+    }
+  },
+  "firestore": {
+    "trees/{userId}": {
+      "schema": "TreeData",
+      "description": "User's technology tree data."
+    }
+  }
+}
