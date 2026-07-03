@@ -18,7 +18,7 @@ import { TechNode } from './TechNode';
 import { NodeEditorModal } from './NodeEditorModal';
 import { TechNodeData } from '../types';
 import { db, handleFirestoreError, OperationType, auth } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 const nodeTypes = {
   techNode: TechNode,
@@ -111,22 +111,21 @@ function TechTreeContent({ isDevsMode }: { isDevsMode: boolean }) {
 
   // Load from Firebase
   useEffect(() => {
-    const loadTree = async () => {
-      const uid = getUid();
-      if (!uid) return;
-      try {
-        const docRef = doc(db, 'trees', uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.nodes) setNodes(JSON.parse(data.nodes));
-          if (data.edges) setEdges(JSON.parse(data.edges));
-        }
-      } catch (error) {
-        handleFirestoreError(error, OperationType.GET, `trees/${uid}`);
+    const uid = getUid();
+    if (!uid) return;
+    
+    const docRef = doc(db, 'trees', uid);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.nodes) setNodes(JSON.parse(data.nodes));
+        if (data.edges) setEdges(JSON.parse(data.edges));
       }
-    };
-    loadTree();
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `trees/${uid}`);
+    });
+
+    return () => unsubscribe();
   }, [setNodes, setEdges, getUid]);
 
   // Save to Firebase

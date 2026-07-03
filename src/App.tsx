@@ -6,7 +6,9 @@ import { LogOut } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [isDevsMode, setIsDevsMode] = useState(false);
+  const [isDevsMode, setIsDevsMode] = useState(() => {
+    return localStorage.getItem('pirate_rts_devs_mode') === 'true';
+  });
   const [loading, setLoading] = useState(true);
 
   const [username, setUsername] = useState('');
@@ -25,6 +27,7 @@ export default function App() {
     e.preventDefault();
     if (username === 'devs' && password === '1212') {
       setIsDevsMode(true);
+      localStorage.setItem('pirate_rts_devs_mode', 'true');
       setLoginError('');
     } else {
       setLoginError('Invalid username or password');
@@ -34,6 +37,7 @@ export default function App() {
   const handleLogout = () => {
     if (isDevsMode) {
       setIsDevsMode(false);
+      localStorage.removeItem('pirate_rts_devs_mode');
       setUsername('');
       setPassword('');
     } else {
