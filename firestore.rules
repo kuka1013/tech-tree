@@ -28,5 +28,9 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly(['nodes', 'edges']);
       allow delete: if isSignedIn() && request.auth.uid == userId;
     }
+
+    match /trees/devs_shared {
+      allow read, write: if true;
+    }
   }
 }

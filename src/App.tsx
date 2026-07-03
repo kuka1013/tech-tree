@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react';
-import { auth, login, logout } from './firebase';
+import React, { useEffect, useState } from 'react';
+import { auth, logout } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { TechTree } from './components/TechTree';
 import { LogOut } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [isDevsMode, setIsDevsMode] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -16,6 +21,26 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'devs' && password === '1212') {
+      setIsDevsMode(true);
+      setLoginError('');
+    } else {
+      setLoginError('Invalid username or password');
+    }
+  };
+
+  const handleLogout = () => {
+    if (isDevsMode) {
+      setIsDevsMode(false);
+      setUsername('');
+      setPassword('');
+    } else {
+      logout();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0c141d] flex flex-col items-center justify-center font-serif text-[#e2d5c3]">
@@ -24,7 +49,7 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (!user && !isDevsMode) {
     return (
       <div className="min-h-screen bg-[#0c141d] flex flex-col items-center justify-center font-sans text-[#e2d5c3] p-4 relative overflow-hidden">
         <div className="bg-[#1e1915] p-10 rounded-3xl shadow-2xl border border-[#3d2f1e] max-w-sm w-full text-center relative z-10 flex flex-col items-center">
@@ -34,16 +59,29 @@ export default function App() {
           <h1 className="text-2xl font-bold text-[#f0d0a0] mb-2 uppercase tracking-widest">Pirate RTS</h1>
           <h2 className="text-xs font-bold text-[#8b7d6b] mb-10 uppercase tracking-widest opacity-80">Tech Tree Builder</h2>
           
-          <p className="text-[#8b7d6b] mb-10 text-sm leading-relaxed">
-            Design your technology progression.<br/>Save it across all devices.
-          </p>
-
-          <button
-            onClick={login}
-            className="w-full bg-[#b58e3d] hover:bg-[#d4ac5d] text-[#1e1915] font-bold py-3.5 px-6 rounded-xl uppercase text-xs tracking-widest transition-colors shadow-lg"
-          >
-            Sign in with Google
-          </button>
+          <form onSubmit={handleLogin} className="w-full flex flex-col gap-4 mb-4">
+            <input 
+              type="text" 
+              placeholder="Username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-[#1a140f] border border-[#3d2f1e] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#b58e3d] transition-colors text-[#e2d5c3]"
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-[#1a140f] border border-[#3d2f1e] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#b58e3d] transition-colors text-[#e2d5c3]"
+            />
+            {loginError && <p className="text-red-500 text-xs text-left">{loginError}</p>}
+            <button
+              type="submit"
+              className="w-full bg-[#b58e3d] hover:bg-[#d4ac5d] text-[#1e1915] font-bold py-3.5 px-6 rounded-xl uppercase text-xs tracking-widest transition-colors shadow-lg mt-2"
+            >
+              Sign In
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -65,10 +103,10 @@ export default function App() {
         <div className="flex gap-6 items-center text-sm">
           <div className="flex gap-4 items-center">
             <div className="text-xs font-medium text-[#8b7d6b] flex items-center gap-2">
-              <span className="uppercase tracking-widest">{user.displayName}</span>
+              <span className="uppercase tracking-widest">{isDevsMode ? 'Devs (Shared Account)' : user?.displayName}</span>
             </div>
             <button 
-              onClick={logout}
+              onClick={handleLogout}
               className="text-[#5c6575] hover:text-[#f0d0a0] transition-colors"
               title="Log out"
             >
@@ -79,7 +117,7 @@ export default function App() {
       </header>
       
       <main className="flex-1 relative cursor-crosshair">
-        <TechTree />
+        <TechTree isDevsMode={isDevsMode} />
       </main>
 
       <footer className="h-12 bg-[#0c141d] border-t border-[#1a2430] flex items-center justify-between px-8 text-[10px] font-sans tracking-widest uppercase text-[#5c6575] z-20 shrink-0">
