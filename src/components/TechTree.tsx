@@ -229,6 +229,29 @@ function TechTreeContent({ isDevsMode }: { isDevsMode: boolean }) {
     [connectingId, nodes, saveTree, setEdges]
   );
 
+  const onEdgeDoubleClick = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.preventDefault();
+      const updatedEdges = edges.filter((e) => e.id !== edge.id);
+      setEdges(updatedEdges);
+      saveTree(nodes, updatedEdges);
+    },
+    [edges, nodes, saveTree, setEdges]
+  );
+
+  const onNodesDelete = useCallback((deleted: Node[]) => {
+    const deletedIds = deleted.map(n => n.id);
+    const updatedNodes = nodes.filter(n => !deletedIds.includes(n.id));
+    const updatedEdges = edges.filter(e => !deletedIds.includes(e.source) && !deletedIds.includes(e.target));
+    saveTree(updatedNodes, updatedEdges);
+  }, [nodes, edges, saveTree]);
+
+  const onEdgesDelete = useCallback((deleted: Edge[]) => {
+    const deletedIds = deleted.map(e => e.id);
+    const updatedEdges = edges.filter(e => !deletedIds.includes(e.id));
+    saveTree(nodes, updatedEdges);
+  }, [nodes, edges, saveTree]);
+
   const onPaneClick = useCallback(() => {
     if (connectingId) {
       setConnectingId(null);
@@ -274,11 +297,14 @@ function TechTreeContent({ isDevsMode }: { isDevsMode: boolean }) {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodesDelete={onNodesDelete}
+        onEdgesDelete={onEdgesDelete}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneContextMenu={onPaneContextMenu}
         onNodeContextMenu={onNodeContextMenu}
         onNodeDoubleClick={onNodeDoubleClick}
+        onEdgeDoubleClick={onEdgeDoubleClick}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
