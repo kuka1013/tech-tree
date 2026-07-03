@@ -28,5 +28,10 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly(['nodes', 'edges']));
       allow delete: if userId == 'global_shared' || userId == 'devs_shared' || (isSignedIn() && request.auth.uid == userId);
     }
+    
+    match /checklists/{listId} {
+      allow read, write: if listId == 'global_shared' || listId == 'devs_shared' || (isSignedIn() && request.auth.uid == listId);
+    }
   }
 }
+
